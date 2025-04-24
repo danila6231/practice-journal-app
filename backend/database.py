@@ -6,41 +6,25 @@ import certifi
 load_dotenv()
 
 # Get MongoDB connection string from environment variable
-# Default to localhost if not provided
-MONGODB_URL = os.getenv(
-    "MONGODB_URL",
-    "mongodb://localhost:27017/ai_journal"
+MONGODB_URL = os.getenv("MONGODB_URL")
+if not MONGODB_URL:
+    raise ValueError("MONGODB_URL environment variable is required")
+
+# Extract database name from connection string
+DATABASE_NAME = MONGODB_URL.split('/')[-1].split('?')[0]
+if not DATABASE_NAME:
+    raise ValueError("Database name must be specified in the MongoDB URL")
+
+# Get the CA certificate path
+ca = certifi.where()
+
+# Create MongoDB client with Atlas configuration
+client = AsyncIOMotorClient(
+    MONGODB_URL,
+    tlsCAFile=ca,
+    retryWrites=True,
+    w="majority"
 )
-
-# Extract database name from connection string or use default
-if "mongodb+srv://" in MONGODB_URL:
-    # For Atlas URLs, database name comes after the last '/'
-    DATABASE_NAME = MONGODB_URL.split('/')[-1].split('?')[0] or "ai_journal"
-else:
-    # For local URLs, database name is the last part
-    DATABASE_NAME = MONGODB_URL.split('/')[-1] or "ai_journal"
-
-# Configure client settings based on connection type
-client_settings = {
-    "serverSelectionTimeoutMS": 5000,
-}
-
-if "mongodb+srv://" in MONGODB_URL:
-    # Atlas-specific settings
-    client_settings.update({
-        "tls": True,
-        "tlsCAFile": certifi.where(),
-        "retryWrites": True,
-        "w": "majority"
-    })
-else:
-    # Local MongoDB settings
-    client_settings.update({
-        "tls": False
-    })
-
-# Create MongoDB client with proper configuration
-client = AsyncIOMotorClient(MONGODB_URL, **client_settings)
 db = client[DATABASE_NAME]
 
 entries_collection = db.entries 
