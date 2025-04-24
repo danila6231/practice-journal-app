@@ -22,29 +22,28 @@ ca = certifi.where()
 # Check if running on Render
 is_on_render = os.getenv("RENDER") == "true"
 
-# Create MongoDB client with Atlas configuration
-client_options = {
-    "retryWrites": True,
-    "w": "majority",
-    "serverSelectionTimeoutMS": 60000,  # Increase timeout to 60s
-    "connectTimeoutMS": 30000,
-    "socketTimeoutMS": 30000,
-}
-
-# Set SSL context options
+# Create MongoDB client connection options
 if is_on_render:
-    # Use more permissive SSL settings on Render
-    ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-    ssl_context.check_hostname = False
-    ssl_context.verify_mode = ssl.CERT_NONE
-    client_options["ssl_cert_reqs"] = ssl.CERT_NONE
-    client_options["tlsInsecure"] = True
-    client_options["ssl"] = True
+    # Use direct certification path without enabling insecure mode
+    client = AsyncIOMotorClient(
+        MONGODB_URL,
+        tlsCAFile=ca,
+        tlsAllowInvalidHostnames=True,
+        retryWrites=True,
+        serverSelectionTimeoutMS=60000,
+        connectTimeoutMS=30000,
+        socketTimeoutMS=30000,
+        w="majority"
+    )
 else:
-    # Standard SSL settings for local development
-    client_options["tlsCAFile"] = ca
+    # Standard connection for local development
+    client = AsyncIOMotorClient(
+        MONGODB_URL,
+        tlsCAFile=ca,
+        retryWrites=True,
+        w="majority"
+    )
 
-client = AsyncIOMotorClient(MONGODB_URL, **client_options)
 db = client[DATABASE_NAME]
 
 entries_collection = db.entries 
