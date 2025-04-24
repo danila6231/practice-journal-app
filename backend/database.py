@@ -20,13 +20,27 @@ else:
     # For local URLs, database name is the last part
     DATABASE_NAME = MONGODB_URL.split('/')[-1] or "ai_journal"
 
-# Create MongoDB client with proper TLS configuration
-client = AsyncIOMotorClient(
-    MONGODB_URL,
-    tls=True,
-    tlsCAFile=certifi.where(),
-    serverSelectionTimeoutMS=5000
-)
+# Configure client settings based on connection type
+client_settings = {
+    "serverSelectionTimeoutMS": 5000,
+}
+
+if "mongodb+srv://" in MONGODB_URL:
+    # Atlas-specific settings
+    client_settings.update({
+        "tls": True,
+        "tlsCAFile": certifi.where(),
+        "retryWrites": True,
+        "w": "majority"
+    })
+else:
+    # Local MongoDB settings
+    client_settings.update({
+        "tls": False
+    })
+
+# Create MongoDB client with proper configuration
+client = AsyncIOMotorClient(MONGODB_URL, **client_settings)
 db = client[DATABASE_NAME]
 
 entries_collection = db.entries 
