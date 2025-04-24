@@ -11,9 +11,9 @@ if not MONGODB_URL:
     raise ValueError("MONGODB_URL environment variable is required")
 
 # Extract database name from connection string
-DATABASE_NAME = MONGODB_URL.split('/')[-1].split('?')[0]
+DATABASE_NAME = os.getenv("DATABASE_NAME")
 if not DATABASE_NAME:
-    raise ValueError("Database name must be specified in the MongoDB URL")
+    raise ValueError("DATABASE_NAME environment variable is required")
 
 # Get the CA certificate path
 ca = certifi.where()
