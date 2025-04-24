@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import entries
+from routes import entries
 
 app = FastAPI(title="AI Journal API")
 

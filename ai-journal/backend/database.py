@@ -4,10 +4,23 @@ import os
 
 load_dotenv()
 
-MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
-DATABASE_NAME = "ai_journal"
+# Get MongoDB connection string from environment variable
+# Default to localhost if not provided
+MONGODB_URL = os.getenv(
+    "MONGODB_URL",
+    "mongodb://localhost:27017/ai_journal"
+)
 
-client = AsyncIOMotorClient(MONGODB_URL)
+# Extract database name from connection string or use default
+if "mongodb+srv://" in MONGODB_URL:
+    # For Atlas URLs, database name comes after the last '/'
+    DATABASE_NAME = MONGODB_URL.split('/')[-1].split('?')[0] or "ai_journal"
+else:
+    # For local URLs, database name is the last part
+    DATABASE_NAME = MONGODB_URL.split('/')[-1] or "ai_journal"
+
+# Create MongoDB client with SSL verification disabled for development
+client = AsyncIOMotorClient(MONGODB_URL, tlsAllowInvalidCertificates=True)
 db = client[DATABASE_NAME]
 
 entries_collection = db.entries 

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from ..models.entry import Entry
-from ..database import entries_collection
-from ..services.gemini import process_entry
+from models.entry import Entry
+from database import entries_collection
+from services.gemini import process_entry
 from bson import ObjectId
 
 router = APIRouter()
