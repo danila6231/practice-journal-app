@@ -1,6 +1,7 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 import os
+import certifi
 
 load_dotenv()
 
@@ -19,8 +20,13 @@ else:
     # For local URLs, database name is the last part
     DATABASE_NAME = MONGODB_URL.split('/')[-1] or "ai_journal"
 
-# Create MongoDB client with SSL verification disabled for development
-client = AsyncIOMotorClient(MONGODB_URL, tlsAllowInvalidCertificates=True)
+# Create MongoDB client with proper TLS configuration
+client = AsyncIOMotorClient(
+    MONGODB_URL,
+    tls=True,
+    tlsCAFile=certifi.where(),
+    serverSelectionTimeoutMS=5000
+)
 db = client[DATABASE_NAME]
 
 entries_collection = db.entries 

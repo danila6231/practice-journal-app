@@ -20,7 +20,7 @@ const JournalForm = () => {
     setError('');
 
     try {
-      await axios.post('http://localhost:8000/api/entries', {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/entries`, {
         content,
         summary: '', // Will be filled by backend
         mood_tag: '' // Will be filled by backend
