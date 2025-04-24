@@ -2,7 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 import os
 import certifi
-import sys
+import ssl
 
 load_dotenv()
 
@@ -24,15 +24,25 @@ is_on_render = os.getenv("RENDER") == "true"
 
 # Create MongoDB client with Atlas configuration
 client_options = {
-    "tlsCAFile": ca,
     "retryWrites": True,
     "w": "majority",
-    "serverSelectionTimeoutMS": 30000,  # Increase timeout to 30s
+    "serverSelectionTimeoutMS": 60000,  # Increase timeout to 60s
+    "connectTimeoutMS": 30000,
+    "socketTimeoutMS": 30000,
 }
 
-# Add this option only when on Render to bypass strict certificate verification
+# Set SSL context options
 if is_on_render:
+    # Use more permissive SSL settings on Render
+    ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
+    client_options["ssl_cert_reqs"] = ssl.CERT_NONE
     client_options["tlsInsecure"] = True
+    client_options["ssl"] = True
+else:
+    # Standard SSL settings for local development
+    client_options["tlsCAFile"] = ca
 
 client = AsyncIOMotorClient(MONGODB_URL, **client_options)
 db = client[DATABASE_NAME]
