@@ -24,11 +24,12 @@ is_on_render = os.getenv("RENDER") == "true"
 
 # Create MongoDB client connection options
 if is_on_render:
-    # Use direct certification path without enabling insecure mode
+    # Updated connection options for Render with TLS/SSL fixes
     client = AsyncIOMotorClient(
         MONGODB_URL,
         tlsCAFile=ca,
-        tlsAllowInvalidHostnames=True,
+        tls=True,
+        tlsInsecure=True,
         retryWrites=True,
         serverSelectionTimeoutMS=60000,
         connectTimeoutMS=30000,
