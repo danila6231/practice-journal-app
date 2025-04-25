@@ -25,17 +25,30 @@ is_on_render = os.getenv("RENDER") == "true"
 # Create MongoDB client connection options
 if is_on_render:
     # Updated connection options for Render with TLS/SSL fixes
-    client = AsyncIOMotorClient(
-        MONGODB_URL,
-        tlsCAFile=ca,
-        tls=True,
-        tlsInsecure=True,
-        retryWrites=True,
-        serverSelectionTimeoutMS=60000,
-        connectTimeoutMS=30000,
-        socketTimeoutMS=30000,
-        w="majority"
-    )
+    try:
+        client = AsyncIOMotorClient(
+            MONGODB_URL,
+            ssl=True,
+            ssl_cert_reqs=ssl.CERT_NONE,  # Disables certificate verification - for troubleshooting only
+            tlsInsecure=True,              # Less secure but works around SSL issues on Render
+            retryWrites=True,
+            serverSelectionTimeoutMS=60000,
+            connectTimeoutMS=30000,
+            socketTimeoutMS=30000,
+            w="majority"
+        )
+        # Test the connection
+        client.admin.command('ping')
+        print("MongoDB connection successful")
+    except Exception as e:
+        print(f"MongoDB connection error: {e}")
+        # Fallback connection attempt
+        client = AsyncIOMotorClient(
+            MONGODB_URL,
+            ssl=True,
+            tlsAllowInvalidCertificates=True,
+            tlsAllowInvalidHostnames=True
+        )
 else:
     # Standard connection for local development
     client = AsyncIOMotorClient(

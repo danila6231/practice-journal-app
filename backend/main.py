@@ -8,12 +8,6 @@ app = FastAPI(title="AI Journal API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:8000",
-        "https://practice-journal-app.vercel.app",
-        "https://practice-journal-app.netlify.app",
-        "https://practice-journal-app.onrender.com",
-        "https://practice-journal-frontend.onrender.com",
         "*"
     ],
     allow_credentials=True,
